@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head><title>Reserve Slot - $20</title>
+<style>
+    body { background: #1e3c72; color: white; font-family: sans-serif; text-align: center; padding-top: 50px; }
+    .box { background: white; color: #333; padding: 40px; display: inline-block; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+    input { display: block; width: 320px; padding: 12px; margin: 15px 0; border: 1px solid #ccc; border-radius: 5px; }
+    button { width: 100%; padding: 15px; background: #25D366; border: none; color: white; font-weight: bold; cursor: pointer; border-radius: 5px; }
+</style>
+</head>
+<body>
+    <div class="box">
+        <h2 style="margin-top:0">RESERVE YOUR SLOT</h2>
+        <p>Price: $20 | Size: 200x200 Pixels</p>
+        <input type="number" id="slot" placeholder="Slot Number (1-25600)">
+        <input type="text" id="img" placeholder="Direct Image URL">
+        <input type="text" id="site" placeholder="Your Website Link">
+        <button onclick="send()">SUBMIT PREVIEW</button>
+        <p style="font-size:12px; color:#666">Contact +8801576940717 for Video Promo!</p>
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script>
+        firebase.initializeApp({databaseURL: "https://m-legacy-5cf2b-default-rtdb.firebaseio.com/"});
+        function send(){
+            const s = document.getElementById('slot').value;
+            if(!s) return alert("Enter Slot Number");
+            firebase.database().ref('pending/'+s).set({
+                imageUrl: document.getElementById('img').value,
+                siteUrl: document.getElementById('site').value
+            }).then(() => {
+                alert("Submitted! Please wait for admin approval.");
+                window.location.href="index.html";
+            });
+        }
+    </script>
+</body>
+</html>
