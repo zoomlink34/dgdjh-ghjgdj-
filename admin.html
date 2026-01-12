@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - 1 Billion Pixels Plus</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 40px; }
+        #login-container { max-width: 400px; margin: 100px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
+        input[type="password"] { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        button { background: #1e3c72; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; }
+        button:hover { background: #2a5298; }
+        
+        #admin-panel { display: none; max-width: 900px; margin: auto; }
+        .pending-card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; border-left: 5px solid #ffcc00; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .pending-card img { width: 60px; height: 60px; object-fit: cover; border: 1px solid #ddd; margin-right: 15px; }
+        .btn-approve { background: #28a745; margin-right: 5px; width: auto; }
+        .btn-reject { background: #dc3545; width: auto; }
+    </style>
+</head>
+<body>
+
+    <div id="login-container">
+        <h2>Admin Access</h2>
+        <input type="password" id="adminPass" placeholder="Enter Admin Password">
+        <button onclick="checkAuth()">Login</button>
+    </div>
+
+    <div id="admin-panel">
+        <h1>Pending Reviews</h1>
+        <p>Total slots to review: <span id="pending-count">0</span></p>
+        <hr>
+        <div id="pending-list"></div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+    <script>
+        const firebaseConfig = { databaseURL: "https://m-legacy-5cf2b-default-rtdb.firebaseio.com/" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function checkAuth() {
+            const pass = document.getElementById('adminPass').value;
+            if (pass === "KAWSARahmed22@@") {
+                document.getElementById('login-container').style.display = 'none';
+                document.getElementById('admin-panel').style.display = 'block';
+                loadPending();
+            } else {
+                alert("Incorrect Password!");
+            }
+        }
+
+        function loadPending() {
+            db.ref('pending').on('value', snap => {
+                const list = document.getElementById('pending-list');
+                const data = snap.val();
+                list.innerHTML = "";
+                if (!data) {
+                    list.innerHTML = "<h3>No pending requests at the moment.</h3>";
+                    document.getElementById('pending-count').innerText = "0";
+                    return;
+                }
+                
+                const keys = Object.keys(data);
+                document.getElementById('pending-count').innerText = keys.length;
+                
+                keys.forEach(id => {
+                    const item = data[id];
+                    list.innerHTML += `
+                        <div class="pending-card">
+                            <div style="display:flex; align-items:center;">
+                                <img src="${item.imageUrl}">
+                                <div>
+                                    <strong>Slot #${id}</strong><br>
+                                    <small>${item.siteUrl}</small>
+                                </div>
+                            </div>
+                            <div>
+                                <button class="btn-approve" onclick="approve('${id}', '${item.imageUrl}', '${item.siteUrl}')">Approve</button>
+                                <button class="btn-reject" onclick="reject('${id}')">Delete</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        function approve(id, img, url) {
+            db.ref('pixels/' + id).set({
+                imageUrl: img,
+                link: url
+            }).then(() => {
+                db.ref('pending/' + id).remove();
+                alert("Slot " + id + " Approved!");
+            });
+        }
+
+        function reject(id) {
+            if (confirm("Are you sure you want to delete Slot #" + id + "?")) {
+                db.ref('pending/' + id).remove();
+            }
+        }
+    </script>
+</body>
+</html>
